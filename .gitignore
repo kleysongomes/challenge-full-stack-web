@@ -102,3 +102,23 @@ dist
 
 # TernJS port file
 .tern-port
+
+# meus ignorados
+
+# Ignorar volumes do Docker
+postgres-data/
+
+# Ignore arquivos de inicialização SQL temporários
+init-sql/
+
+# Ignore arquivos do sistema/IDE
+.DS_Store
+*.swp
+.vscode/
+.idea/
+
+# Logs
+logs/
+
+# Ignore arquivos de build (caso do frontend)
+dist/
