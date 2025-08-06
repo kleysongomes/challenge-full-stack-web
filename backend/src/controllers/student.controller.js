@@ -1,5 +1,3 @@
-// Arquivo: src/controllers/student.controller.js
-
 const StudentModel = require('../models/student.model');
 const asyncHandler = require('express-async-handler');
 const { cpf: cpfValidator } = require('cpf-cnpj-validator');

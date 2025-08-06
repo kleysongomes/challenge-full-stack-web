@@ -1,5 +1,3 @@
-// Arquivo: src/models/student.model.js
-
 const db = require('../database');
 
 const StudentModel = {

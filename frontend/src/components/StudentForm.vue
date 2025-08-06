@@ -90,16 +90,11 @@ export default {
     }
   },
 
-  // ==================== NOVA SEÇÃO ADICIONADA ====================
   watch: {
-    // Observador para o campo RA
     'student.ra'(newValue) {
-      // Pega o novo valor, remove tudo o que não for dígito e atualiza a variável.
-      // O resultado é que o usuário simplesmente não consegue digitar letras ou símbolos.
       this.student.ra = newValue.replace(/\D/g, '');
     }
   },
-  // =============================================================
 
   computed: {
     isEditMode() {
@@ -116,7 +111,6 @@ export default {
           .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
       },
       set(value) {
-        // Esta linha já garante que apenas números sejam salvos em 'student.cpf'
         this.student.cpf = value.replace(/\D/g, '');
       }
     }
