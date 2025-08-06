@@ -1,12 +1,10 @@
 <template>
   <v-container fluid class="pa-0 pt-12">
     <v-card class="mx-4 pa-4">
-      <!-- TÍTULO -->
       <v-card-title>
         {{ isEditMode ? 'Editar Aluno' : 'Cadastrar Aluno' }}
       </v-card-title>
 
-      <!-- FORMULÁRIO -->
       <v-card-text>
         <v-form ref="form" v-model="formValid" @submit.prevent="handleSubmit">
           <v-text-field
@@ -15,7 +13,7 @@
             :disabled="isEditMode"
             :rules="rules.ra"
             required
-            maxlength="6"
+            maxlength="8"
             class="mb-4"
           />
           <v-text-field
@@ -33,18 +31,17 @@
             class="mb-4"
           />
           <v-text-field
-            v-model="student.cpf"
+            v-model="formattedCpf"
             label="CPF"
             :disabled="isEditMode"
             :rules="rules.cpf"
             required
-            maxlength="11"
+            maxlength="14"
             class="mb-4"
           />
         </v-form>
       </v-card-text>
 
-      <!-- AÇÕES -->
       <v-card-actions class="justify-end gap-4">
         <v-btn text color="grey" @click="goBack">
           Cancelar
@@ -54,7 +51,6 @@
         </v-btn>
       </v-card-actions>
 
-      <!-- SNACKBAR -->
       <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">
         {{ snackbar.text }}
       </v-snackbar>
@@ -63,7 +59,9 @@
 </template>
 
 <script>
-import axios from 'axios'
+import axios from 'axios';
+import { cpf as cpfValidator } from 'cpf-cnpj-validator';
+
 export default {
   name: 'StudentForm',
   data() {
@@ -74,83 +72,104 @@ export default {
       rules: {
         ra: [
           v => !!v || 'RA é obrigatório',
-          v => /^\d{6}$/.test(v) || 'RA deve conter exatamente 6 dígitos numéricos'
+          v => /^\d{6,8}$/.test(v) || 'RA deve conter de 6 a 8 dígitos numéricos'
         ],
         name: [
           v => !!v || 'Nome é obrigatório',
-          v => /\s/.test(v) || 'Informe também o sobrenome'
+          v => (v && v.trim().includes(' ')) || 'Informe o nome completo'
         ],
         email: [
           v => !!v || 'Email é obrigatório',
-          v => /.+@.+\..+/.test(v) || 'Email inválido'
+          v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || 'Email inválido'
         ],
         cpf: [
           v => !!v || 'CPF é obrigatório',
-          v => /^\d{11}$/.test(v) || 'CPF deve conter exatamente 11 números'
+          v => cpfValidator.isValid(v) || 'CPF inválido'
         ]
       }
     }
   },
+
+  // ==================== NOVA SEÇÃO ADICIONADA ====================
+  watch: {
+    // Observador para o campo RA
+    'student.ra'(newValue) {
+      // Pega o novo valor, remove tudo o que não for dígito e atualiza a variável.
+      // O resultado é que o usuário simplesmente não consegue digitar letras ou símbolos.
+      this.student.ra = newValue.replace(/\D/g, '');
+    }
+  },
+  // =============================================================
+
   computed: {
     isEditMode() {
-      return !!this.$route.params.ra
+      return !!this.$route.params.ra;
+    },
+    formattedCpf: {
+      get() {
+        let value = this.student.cpf;
+        if (!value) return '';
+        return value
+          .replace(/\D/g, '')
+          .replace(/(\d{3})(\d)/, '$1.$2')
+          .replace(/(\d{3})(\d)/, '$1.$2')
+          .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      },
+      set(value) {
+        // Esta linha já garante que apenas números sejam salvos em 'student.cpf'
+        this.student.cpf = value.replace(/\D/g, '');
+      }
     }
   },
   methods: {
     showSnackbar(message, color = 'green') {
-      this.snackbar.text = message
-      this.snackbar.color = color
-      this.snackbar.show = true
+      this.snackbar.text = message;
+      this.snackbar.color = color;
+      this.snackbar.show = true;
     },
     async handleSubmit() {
-      const isValid = await this.$refs.form.validate()
-      if (!isValid) return
+      const { valid } = await this.$refs.form.validate();
+      if (!valid) return;
       try {
         if (this.isEditMode) {
           await axios.put(`http://localhost:3000/students/${this.student.ra}`, {
             name: this.student.name,
             email: this.student.email
-          })
-          this.showSnackbar('Aluno atualizado com sucesso!')
+          });
+          this.showSnackbar('Aluno atualizado com sucesso!');
         } else {
-          await axios.post('http://localhost:3000/students', this.student)
-          this.showSnackbar('Aluno cadastrado com sucesso!')
+          await axios.post('http://localhost:3000/students', this.student);
+          this.showSnackbar('Aluno cadastrado com sucesso!');
         }
-        setTimeout(() => this.$router.push('/students'), 1000)
+        setTimeout(() => this.$router.push('/students'), 1000);
       } catch (error) {
-        console.error('Erro ao salvar aluno:', error)
-        const msg = error?.response?.data?.error || 'Erro ao salvar aluno. Verifique os dados.'
-        this.showSnackbar(msg, 'red')
+        console.error('Erro ao salvar aluno:', error);
+        const details = error.response?.data?.details?.join(', ');
+        const msg = details || error.response?.data?.error || 'Erro ao salvar aluno.';
+        this.showSnackbar(msg, 'red');
       }
     },
     goBack() {
-      this.$router.push('/students')
+      this.$router.push('/students');
     },
     async loadStudent() {
-      if (!this.isEditMode) return
+      if (!this.isEditMode) return;
       try {
         const { data } = await axios.get(
           `http://localhost:3000/students/${this.$route.params.ra}`
-        )
-        this.student = data.data
+        );
+        this.student = data.data;
       } catch (error) {
-        console.error('Erro ao carregar aluno:', error)
-        const msg = error?.response?.data?.error || 'Aluno não encontrado.'
-        this.showSnackbar(msg, 'red')
-        this.$router.push('/students')
+        console.error('Erro ao carregar aluno:', error);
+        const msg = error?.response?.data?.error || 'Aluno não encontrado.';
+        this.showSnackbar(msg, 'red');
+        this.$router.push('/students');
       }
     },
-    generateRandomRa() {
-      const min = 100000,
-        max = 999999
-      return String(Math.floor(Math.random() * (max - min + 1)) + min)
-    }
   },
   mounted() {
     if (this.isEditMode) {
-      this.loadStudent()
-    } else {
-      this.student.ra = this.generateRandomRa()
+      this.loadStudent();
     }
   }
 }
