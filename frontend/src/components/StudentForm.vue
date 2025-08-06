@@ -132,7 +132,7 @@ export default {
         const { data } = await axios.get(
           `http://localhost:3000/students/${this.$route.params.ra}`
         )
-        this.student = data
+        this.student = data.data
       } catch (error) {
         console.error('Erro ao carregar aluno:', error)
         const msg = error?.response?.data?.error || 'Aluno não encontrado.'
