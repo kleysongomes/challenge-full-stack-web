@@ -33,7 +33,7 @@
 
 3. Rode o servidor backend:
    ```bash
-   node index.js
+   node server.js
    ```
 
 ---
