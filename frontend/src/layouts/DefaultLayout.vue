@@ -27,7 +27,7 @@
 
       <template v-slot:append>
         <div class="pa-2">
-          <v-btn block color="secondary" @click="handleLogout">
+          <v-btn block color="error" @click="handleLogout">
             Sair
           </v-btn>
         </div>
