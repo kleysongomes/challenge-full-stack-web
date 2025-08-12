@@ -2,6 +2,9 @@
 const express = require('express');
 const router = express.Router();
 const StudentController = require('../controllers/student.controller');
+const { protect } = require('../middlewares/auth.middleware');
+
+router.use(protect);
 
 // GET /students
 router.get('/', StudentController.index);
