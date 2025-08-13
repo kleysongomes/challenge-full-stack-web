@@ -15,21 +15,21 @@
             required
             maxlength="8"
             class="mb-4"
-          />
+          ></v-text-field>
           <v-text-field
             v-model="student.name"
             label="Nome"
             :rules="rules.name"
             required
             class="mb-4"
-          />
+          ></v-text-field>
           <v-text-field
             v-model="student.email"
             label="Email"
             :rules="rules.email"
             required
             class="mb-4"
-          />
+          ></v-text-field>
           <v-text-field
             v-model="formattedCpf"
             label="CPF"
@@ -38,7 +38,7 @@
             required
             maxlength="14"
             class="mb-4"
-          />
+          ></v-text-field>
         </v-form>
       </v-card-text>
 
@@ -89,13 +89,11 @@ export default {
       }
     }
   },
-
   watch: {
     'student.ra'(newValue) {
       this.student.ra = newValue.replace(/\D/g, '');
     }
   },
-
   computed: {
     isEditMode() {
       return !!this.$route.params.ra;
@@ -138,9 +136,11 @@ export default {
         setTimeout(() => this.$router.push('/students'), 1000);
       } catch (error) {
         console.error('Erro ao salvar aluno:', error);
-        const details = error.response?.data?.details?.join(', ');
-        const msg = details || error.response?.data?.error || 'Erro ao salvar aluno.';
-        this.showSnackbar(msg, 'red');
+        const errorMsg = error.response?.data?.message ||
+                       error.response?.data?.details?.join(', ') ||
+                       error.response?.data?.error ||
+                       'Erro ao salvar aluno.';
+        this.showSnackbar(errorMsg, 'red');
       }
     },
     goBack() {
@@ -155,7 +155,7 @@ export default {
         this.student = data.data;
       } catch (error) {
         console.error('Erro ao carregar aluno:', error);
-        const msg = error?.response?.data?.error || 'Aluno não encontrado.';
+        const msg = error.response?.data?.error || 'Aluno não encontrado.';
         this.showSnackbar(msg, 'red');
         this.$router.push('/students');
       }
